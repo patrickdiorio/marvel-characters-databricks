@@ -1,0 +1,77 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-marvel-dev"
+		},
+		"db_linkedservice_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'db_linkedservice'"
+		},
+		"ls_azureblobstorage_marvel_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_azureblobstorage_marvel'"
+		},
+		"ls_blobstorage_md5txt_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_blobstorage_md5txt'"
+		},
+		"db_linkedservice_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0210-190925-jn326alp"
+		},
+		"ls_http_marvelapi_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://gateway.marvel.com"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "adf-marvel-dev_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"db_linkedservice_accessToken": {
+						"value": "[parameters('db_linkedservice_accessToken')]"
+					},
+					"ls_azureblobstorage_marvel_connectionString": {
+						"value": "[parameters('ls_azureblobstorage_marvel_connectionString')]"
+					},
+					"ls_blobstorage_md5txt_connectionString": {
+						"value": "[parameters('ls_blobstorage_md5txt_connectionString')]"
+					},
+					"db_linkedservice_properties_typeProperties_existingClusterId": {
+						"value": "[parameters('db_linkedservice_properties_typeProperties_existingClusterId')]"
+					},
+					"ls_http_marvelapi_properties_typeProperties_url": {
+						"value": "[parameters('ls_http_marvelapi_properties_typeProperties_url')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

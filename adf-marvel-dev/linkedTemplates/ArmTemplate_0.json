@@ -1,0 +1,643 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-marvel-dev"
+		},
+		"db_linkedservice_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'db_linkedservice'"
+		},
+		"ls_azureblobstorage_marvel_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_azureblobstorage_marvel'"
+		},
+		"ls_blobstorage_md5txt_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_blobstorage_md5txt'"
+		},
+		"db_linkedservice_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0210-190925-jn326alp"
+		},
+		"ls_http_marvelapi_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "http://gateway.marvel.com"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/db_linkedservice')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-727431390788305.5.azuredatabricks.net",
+					"accessToken": {
+						"type": "SecureString",
+						"value": "[parameters('db_linkedservice_accessToken')]"
+					},
+					"existingClusterId": "[parameters('db_linkedservice_properties_typeProperties_existingClusterId')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_azureblobstorage_marvel')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_azureblobstorage_marvel_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_blobstorage_md5txt')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_blobstorage_md5txt_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_http_marvelapi')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('ls_http_marvelapi_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline_marvel')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "bronze_marvel_characters",
+						"description": ".",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/patrick_diorio@hotmail.com/BronzeLayer/BronzeMarvelCharacters"
+						},
+						"linkedServiceName": {
+							"referenceName": "db_linkedservice",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "silver_marvel_characters",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "bronze_marvel_characters",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/patrick_diorio@hotmail.com/SilverLayer/SilverMarvelCharacters"
+						},
+						"linkedServiceName": {
+							"referenceName": "db_linkedservice",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "gold_marvel_characters_comics",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "silver_marvel_characters",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/patrick_diorio@hotmail.com/GoldLayer/GoldMarvelCharacters"
+						},
+						"linkedServiceName": {
+							"referenceName": "db_linkedservice",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-02-11T23:38:06Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/db_linkedservice')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_marvel_blobstoragejson')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azureblobstorage_marvel",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "transient"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azureblobstorage_marvel')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_marvel_characters_jason_novo')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_http_marvelapi",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"RequestUrl": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": {
+							"value": "@dataset().RequestUrl",
+							"type": "Expression"
+						}
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_http_marvelapi')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_marvel_md5')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobstorage_md5txt",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "hash_md5.txt",
+						"container": "transient"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": false,
+					"quoteChar": null
+				},
+				"schema": [
+					{
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobstorage_md5txt')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_marvel_md5txt')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobstorage_md5txt",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "hash_md5.txt",
+						"container": "transient"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobstorage_md5txt')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_marvelcharactersjson')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_http_marvelapi",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": {
+							"value": "@concat('https://gateway.marvel.com/v1/public/characters?ts=', pipeline().parameters.timestamp, '&apikey=', pipeline().parameters.publicKey, '&hash=', variables('HashMD5'))\n",
+							"type": "Expression"
+						}
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_http_marvelapi')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline_marvel_adf')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "chave",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/patrick_diorio@hotmail.com/LandingLayer/GenerateMarvelMd5"
+						},
+						"linkedServiceName": {
+							"referenceName": "db_linkedservice",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "lp_chave",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "chave",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"maxConcurrentConnections": 1,
+									"recursive": false,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "ds_marvel_md5",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": true
+						}
+					},
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "sv_chave",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Timestamp",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "publicKey",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Timestamp_copy1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings",
+									"copyBehavior": "FlattenHierarchy"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_marvel_characters_jason_novo",
+								"type": "DatasetReference",
+								"parameters": {
+									"RequestUrl": {
+										"value": "@concat('/v1/public/characters?ts=', variables('timestamp'), '&apikey=', variables('public_key'), '&hash=', variables('HashMD5'))",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_marvel_blobstoragejson",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Timestamp",
+						"type": "SetVariable",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "chave",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "timestamp",
+							"value": {
+								"value": "@utcNow()",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "publicKey",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "chave",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "public_key",
+							"value": {
+								"value": "@activity('chave').output.runOutput",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "sv_chave",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "lp_chave",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "HashMD5",
+							"value": {
+								"value": "@string(activity('lp_chave').output.firstRow.Prop_0)",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Timestamp_copy1",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "chave",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "timestamp",
+							"value": {
+								"value": "@activity('chave').output.runOutput",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"timestamp": {
+						"type": "string"
+					},
+					"public_key": {
+						"type": "string"
+					},
+					"HashMD5": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"timestamp": {
+						"type": "String"
+					},
+					"public_key": {
+						"type": "String"
+					},
+					"HashMD5": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-02-11T23:35:18Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/db_linkedservice')]",
+				"[concat(variables('factoryId'), '/datasets/ds_marvel_md5')]",
+				"[concat(variables('factoryId'), '/datasets/ds_marvel_characters_jason_novo')]",
+				"[concat(variables('factoryId'), '/datasets/ds_marvel_blobstoragejson')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/marvel_data')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "pipeline_marvel",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Week",
+						"interval": 1,
+						"startTime": "2024-02-11T23:15:00",
+						"timeZone": "E. South America Standard Time",
+						"schedule": {
+							"minutes": [
+								0
+							],
+							"hours": [
+								7
+							],
+							"weekDays": [
+								"Monday"
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pipeline_marvel')]"
+			]
+		}
+	]
+}

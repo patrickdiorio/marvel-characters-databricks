@@ -1,0 +1,30 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-marvel-dev"
+		},
+		"db_linkedservice_accessToken": {
+			"value": ""
+		},
+		"ls_azureblobstorage_marvel_connectionString": {
+			"value": ""
+		},
+		"ls_blobstorage_md5txt_connectionString": {
+			"value": ""
+		},
+		"db_linkedservice_properties_typeProperties_existingClusterId": {
+			"value": "0210-190925-jn326alp"
+		},
+		"ls_http_marvelapi_properties_typeProperties_url": {
+			"value": "http://gateway.marvel.com"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
