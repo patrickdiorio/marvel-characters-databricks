@@ -1,0 +1,9 @@
+{
+	"name": "adf-marvel-dev",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "305260e5-cf6c-4e03-9119-c2a5dcd0c652",
+		"tenantId": "d16f0536-3c2f-4035-887f-8949bacfacfd"
+	}
+}

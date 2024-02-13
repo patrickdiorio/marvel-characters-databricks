@@ -1,0 +1,22 @@
+{
+	"name": "ds_marvelcharactersjson",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_http_marvelapi",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": {
+					"value": "@concat('https://gateway.marvel.com/v1/public/characters?ts=', pipeline().parameters.timestamp, '&apikey=', pipeline().parameters.publicKey, '&hash=', variables('HashMD5'))\n",
+					"type": "Expression"
+				}
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

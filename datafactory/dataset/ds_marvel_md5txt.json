@@ -1,0 +1,19 @@
+{
+	"name": "ds_marvel_md5txt",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blobstorage_md5txt",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "hash_md5.txt",
+				"container": "transient"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,19 @@
+{
+	"name": "ds_marvel_blobstoragejson",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azureblobstorage_marvel",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": "transient"
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

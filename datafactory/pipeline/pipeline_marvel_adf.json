@@ -1,0 +1,268 @@
+{
+	"name": "pipeline_marvel_adf",
+	"properties": {
+		"activities": [
+			{
+				"name": "chave",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/patrick_diorio@hotmail.com/LandingLayer/GenerateMarvelMd5"
+				},
+				"linkedServiceName": {
+					"referenceName": "db_linkedservice",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "lp_chave",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "chave",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"maxConcurrentConnections": 1,
+							"recursive": false,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "ds_marvel_md5",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "sv_chave",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Timestamp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "publicKey",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Timestamp_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "HttpReadSettings",
+							"requestMethod": "GET"
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "FlattenHierarchy"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_marvel_characters_jason_novo",
+						"type": "DatasetReference",
+						"parameters": {
+							"RequestUrl": {
+								"value": "@concat('/v1/public/characters?ts=', variables('timestamp'), '&apikey=', variables('public_key'), '&hash=', variables('HashMD5'))",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_marvel_blobstoragejson",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Timestamp",
+				"type": "SetVariable",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "chave",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "timestamp",
+					"value": {
+						"value": "@utcNow()",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "publicKey",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "chave",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "public_key",
+					"value": {
+						"value": "@activity('chave').output.runOutput",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "sv_chave",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "lp_chave",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "HashMD5",
+					"value": {
+						"value": "@string(activity('lp_chave').output.firstRow.Prop_0)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Timestamp_copy1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "chave",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "timestamp",
+					"value": {
+						"value": "@activity('chave').output.runOutput",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"timestamp": {
+				"type": "string"
+			},
+			"public_key": {
+				"type": "string"
+			},
+			"HashMD5": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"timestamp": {
+				"type": "String"
+			},
+			"public_key": {
+				"type": "String"
+			},
+			"HashMD5": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-02-11T23:35:18Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

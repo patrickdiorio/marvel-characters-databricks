@@ -1,0 +1,27 @@
+{
+	"name": "ds_marvel_characters_jason_novo",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_http_marvelapi",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"RequestUrl": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": {
+					"value": "@dataset().RequestUrl",
+					"type": "Expression"
+				}
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
