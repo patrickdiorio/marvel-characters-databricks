@@ -65,7 +65,11 @@ https://github.com/patrickdiorio/marvel-characters-databricks/blob/98acfc067ded9
 Every Monday at 7 am the trigger will run the pipeline in Azure Data Factory. The process is fully automated, from data extraction from Marvel's API to final analysis at the Gold tier.
 
 # Output
-
+- Dashboard
 ![chart](https://github.com/patrickdiorio/marvel-characters-databricks/assets/86168049/5b3cabee-54af-46d5-a202-bc9af2e74fac)
+
+- Dataset
+
+https://github.com/patrickdiorio/marvel-characters-databricks/blob/cddd849ec897cf9e173cdf8051a6951df3786301/output_gold.characters.csv
 
 
