@@ -16,7 +16,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"notebookPath": "/Users/patrick_diorio@hotmail.com/BronzeLayer/BronzeMarvelCharacters"
+					"notebookPath": "/Repos/patrick_diorio@hotmail.com/marvel-characters-databricks/databricks/BronzeLayer/BronzeMarvelCharacters"
 				},
 				"linkedServiceName": {
 					"referenceName": "db_linkedservice",
@@ -43,7 +43,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"notebookPath": "/Users/patrick_diorio@hotmail.com/SilverLayer/SilverMarvelCharacters"
+					"notebookPath": "/Repos/patrick_diorio@hotmail.com/marvel-characters-databricks/databricks/SilverLayer/SilverMarvelCharacters"
 				},
 				"linkedServiceName": {
 					"referenceName": "db_linkedservice",
@@ -70,7 +70,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"notebookPath": "/Users/patrick_diorio@hotmail.com/GoldLayer/GoldMarvelCharacters"
+					"notebookPath": "/Repos/patrick_diorio@hotmail.com/marvel-characters-databricks/databricks/GoldLayer/GoldMarvelCharacters"
 				},
 				"linkedServiceName": {
 					"referenceName": "db_linkedservice",
