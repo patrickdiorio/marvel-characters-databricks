@@ -8,7 +8,7 @@ This project consists of extracting data about Marvel characters using the offic
 
 ![image](https://github.com/patrickdiorio/marvel-characters-databricks/assets/86168049/f6a70b04-de73-4525-937b-390c04036697)
 
-# The project follows a layered data processing approach:
+# The project design uses medallion architecture:
 
 - Bronze Layer: Raw data extraction from the Marvel API.
 - Silver Layer: Data cleaning and structuring for analysis.
@@ -67,4 +67,5 @@ Every Monday at 7 am the trigger will run the pipeline in Azure Data Factory. Th
 # Output
 
 ![chart](https://github.com/patrickdiorio/marvel-characters-databricks/assets/86168049/5b3cabee-54af-46d5-a202-bc9af2e74fac)
+
 
