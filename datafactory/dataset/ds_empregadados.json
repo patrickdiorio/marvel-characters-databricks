@@ -1,0 +1,19 @@
+{
+	"name": "ds_empregadados",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blobstorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": "transient"
+			},
+			"compressionCodec": "none"
+		},
+		"schema": []
+	}
+}
